@@ -14,6 +14,7 @@ class BoardType(Enum):
     Nordic = 0,
     TI = 1,
     SiLabs = 2,
+    ST = 3,
     All = 99
 
 

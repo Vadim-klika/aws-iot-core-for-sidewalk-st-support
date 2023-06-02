@@ -20,7 +20,7 @@ from EdgeDeviceProvisioning.libs.EnvConfig import EnvConfig
 from EdgeDeviceProvisioning.libs.ProvisionWrapper import BoardType
 
 logging.getLogger('botocore').setLevel(logging.CRITICAL)
-SUPPORTED_PLATFORMS = ['NORDIC', 'SILABS', 'TI', 'ALL']
+SUPPORTED_PLATFORMS = ['NORDIC', 'SILABS', 'TI', 'ST', 'ALL']
 
 
 def main():
