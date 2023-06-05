@@ -141,10 +141,33 @@ class ProvisionWrapper:
                                                                  memory=self.SILABS_XG24_MEMORY,
                                                                  outfile_s37=sl_xg24_mfg_s37)
 
-    def generate_bin_and_hex_from_aws_jsons(self, device_json, profile_json, board, out_bin, chip, out_hex, addr=None):
-        assert board in (BoardType.Nordic, BoardType.TI), "Operation supported only for Nordic and TI"
+        if board == BoardType.ST or board == BoardType.All:
+            logger.info("  Generating MFG.hex for ST")
+            st_bin = os.path.join(output_dir, "ST_MFG.bin")
+            st_hex = os.path.join(output_dir, "ST_MFG.hex")
+            if input_type == InputType.AWS_API_JSONS:
+                self.generate_bin_and_hex_from_aws_jsons(device_json=wireless_device_path,
+                                                         profile_json=device_profile_path,
+                                                         board=BoardType.ST,
+                                                         out_bin=st_bin,
+                                                         chip="wba52cg",
+                                                         out_hex=st_hex)
+            else:
+                self.generate_bin_and_hex_from_certificate_json(certificate=certificate_json,
+                                                                board=BoardType.ST,
+                                                                out_bin=st_bin,
+                                                                chip="wba52cg",
+                                                                out_hex=st_hex)
 
-        platform = "ti" if board == BoardType.TI else "nordic"
+    def generate_bin_and_hex_from_aws_jsons(self, device_json, profile_json, board, out_bin, chip, out_hex, addr=None):
+        assert board in (BoardType.Nordic, BoardType.TI, BoardType.ST), "Operation supported only for Nordic, TI, and ST"
+
+        if board == BoardType.TI:
+            platform = "ti"
+        elif board == BoardType.Nordic:
+            platform = "nordic"
+        else:
+            platform = "st"
         args = [sys.executable, 'provision.py', platform, 'aws', '--wireless_device_json', device_json,
                                       '--device_profile_json', profile_json,
                                       '--output_bin', out_bin, '--chip', chip, '--output_hex', out_hex]
@@ -165,9 +188,14 @@ class ProvisionWrapper:
         print_subprocess_results(result, subprocess_name="provision.py")
 
     def generate_bin_and_hex_from_certificate_json(self, certificate, board, out_bin, chip, out_hex, addr=None):
-        assert board in (BoardType.Nordic, BoardType.TI), "Operation supported only for Nordic and TI"
+        assert board in (BoardType.Nordic, BoardType.TI, BoardType.ST), "Operation supported only for Nordic, TI, and ST"
 
-        platform = "ti" if board == BoardType.TI else "nordic"
+        if board == BoardType.TI:
+            platform = "ti"
+        elif board == BoardType.Nordic:
+            platform = "nordic"
+        else:
+            platform = "st"
         args = [sys.executable, 'provision.py', platform, 'aws', '--certificate_json', certificate,
                                       '--output_bin', out_bin, '--chip', chip, '--output_hex', out_hex]
         if addr:
