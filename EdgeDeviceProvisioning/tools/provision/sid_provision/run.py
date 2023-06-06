@@ -40,6 +40,7 @@ ED25519_PUB_SIZE: int = 32
 P256R1_PUB_SIZE: int = 64
 SIG_SIZE: int = 64
 
+
 # pylint: disable=C0114,C0115,C0116
 
 
@@ -147,7 +148,8 @@ class SidSupportedPlatform(Enum):
     NORDIC = (0, "nordic")
     TI = (1, "ti")
     SILABS = (2, "silabs")
-    GENERIC = (3, "generic")
+    ST = (3, "st")
+    GENERIC = (4, "generic")
 
     def __init__(self, value: int, str_name: str) -> None:
         # Overload the value so that the enum value corresponds to the
@@ -242,7 +244,6 @@ class StructureHelper:
 
 
 class SidCertMfgP256R1Chain(Structure, StructureHelper):
-
     # pylint: disable=C0326
     _fields_ = [
         ("smsn", c_ubyte * SMSN_SIZE),
@@ -276,7 +277,7 @@ class SidCertMfgP256R1Chain(Structure, StructureHelper):
         00, handle that case
         """
         if len(_device_prk) == PRK_SIZE + 1 and _device_prk[0] == 00:
-            print(f"P256R1 private key size is {PRK_SIZE+1}, truncate to {PRK_SIZE}")
+            print(f"P256R1 private key size is {PRK_SIZE + 1}, truncate to {PRK_SIZE}")
             del _device_prk[0]
 
         self.device_prk = bytes(_device_prk)
@@ -287,7 +288,6 @@ class SidCertMfgP256R1Chain(Structure, StructureHelper):
 
 
 class SidCertMfgED25519Chain(Structure, StructureHelper):
-
     # pylint: disable=C0326
     _fields_ = [
         ("smsn", c_ubyte * SMSN_SIZE),
@@ -324,7 +324,7 @@ class SidCertMfgED25519Chain(Structure, StructureHelper):
 class SidCertMfgCert:
     @staticmethod
     def from_base64(
-        cert: bytes, priv: bytes, is_p256r1: bool = False
+            cert: bytes, priv: bytes, is_p256r1: bool = False
     ) -> Union[SidCertMfgP256R1Chain, SidCertMfgED25519Chain]:
         if is_p256r1:
             return SidCertMfgP256R1Chain(base64.b64decode(cert), priv)
@@ -333,13 +333,13 @@ class SidCertMfgCert:
 
 class SidMfgObj:
     def __init__(
-        self: SidMfgObj,
-        mfg_enum: SidMfgValueId,
-        value: Any,
-        info: dict[str, int],
-        skip: bool = False,
-        word_size: int = 4,
-        is_network_order: bool = True,
+            self: SidMfgObj,
+            mfg_enum: SidMfgValueId,
+            value: Any,
+            info: dict[str, int],
+            skip: bool = False,
+            word_size: int = 4,
+            is_network_order: bool = True,
     ):
         assert isinstance(word_size, int)
         assert (word_size > 0 and info) or (word_size == 0 and not info)
@@ -585,11 +585,11 @@ class SidMfgBBJson(SidMfg):
 
 class SidMfgAcsJson(SidMfg):
     def __init__(
-        self: SidMfgAcsJson,
-        acs_json: Any,
-        app_pub: bytes,
-        config: Any,
-        is_network_order: bool = True,
+            self: SidMfgAcsJson,
+            acs_json: Any,
+            app_pub: bytes,
+            config: Any,
+            is_network_order: bool = True,
     ) -> None:
         super().__init__(app_pub=app_pub, config=config, is_network_order=is_network_order)
 
@@ -695,12 +695,12 @@ class SidMfgAcsJson(SidMfg):
 
 class SidMfgAwsJson(SidMfg):
     def __init__(
-        self: SidMfgAwsJson,
-        aws_wireless_device_json: Any,
-        aws_device_profile_json: Any,
-        aws_certificate_json: Any,
-        config: Any,
-        is_network_order: bool = True,
+            self: SidMfgAwsJson,
+            aws_wireless_device_json: Any,
+            aws_device_profile_json: Any,
+            aws_certificate_json: Any,
+            config: Any,
+            is_network_order: bool = True,
     ) -> None:
         super().__init__(app_pub=None, config=config, is_network_order=is_network_order)
 
@@ -887,7 +887,7 @@ class SidMfgAwsJson(SidMfg):
     def from_args(cls, args, pa) -> SidMfgAwsJson:
         config = AttrDict(vars(args).get("config", {}))
         if (args.wireless_device_json and not args.device_profile_json) or (
-            args.device_profile_json and not args.wireless_device_json
+                args.device_profile_json and not args.wireless_device_json
         ):
             pa.error("Provide both --wireless_device_json and --device_profile_json")
 
@@ -938,7 +938,7 @@ class SidMfgOutBin:
                     _.name, int(_.end / self._config.offset_size) + 1
                 )
                 raise Exception(ex_str)
-            self._encoded[_.start : _.end] = _.encoded
+            self._encoded[_.start: _.end] = _.encoded
 
             if encoded_len != len(self._encoded):
                 raise Exception("Encoded Length Changed")
@@ -997,12 +997,12 @@ class SidMfgOutNVM3:
 
 class SidMfgOutSLS37:
     def __init__(
-        self: SidMfgOutSLS37,
-        file_name: str,
-        config: Any,
-        chip: SidChipAddr,
-        commander: Path,
-        sl_nvm3: Path,
+            self: SidMfgOutSLS37,
+            file_name: str,
+            config: Any,
+            chip: SidChipAddr,
+            commander: Path,
+            sl_nvm3: Path,
     ) -> None:
         self._file_name = file_name
         self._objs: List[str] = list()
@@ -1151,13 +1151,13 @@ def get_additional_addr_help(platform: SidPlatformArgs, __group__: SidInputGroup
 
 
 def get_platform_chip_choices(
-    platform: SidPlatformArgs, __group__: SidInputGroup, __argument__: SidArgument
+        platform: SidPlatformArgs, __group__: SidInputGroup, __argument__: SidArgument
 ) -> list[str]:
     return sorted(list(set(_.name for _ in platform.chips)))
 
 
 def get_memory_value_choices(
-    platform: SidPlatformArgs, __group__: SidInputGroup, __argument__: SidArgument
+        platform: SidPlatformArgs, __group__: SidInputGroup, __argument__: SidArgument
 ) -> list[int]:
     return sorted(list(set(_.mem for _ in platform.chips)))
 
@@ -1505,6 +1505,18 @@ ARG_GROUPS = [
         ],
     ),
     SidPlatformArgs(
+        platform=SidSupportedPlatform.ST,
+        input_groups=[
+            ACS_INPUT_GROUP_FORMAT,
+            BB_INPUT_GROUP_FORMAT,
+            AWS_INPUT_GROUP_FORMAT,
+        ],
+        addtional_input_args=[CONFIG_FILE_ARG, PLATFORM_ADDRESS_ARG],
+        output_args=[OUTPUT_BIN_ARG, OUTPUT_HEX_ARG],
+        config_file=Path("config/st/stm32wba5x/config.yaml"),
+        chips=[SidChipAddr(name="wba52cg", offset_addr=0x080EA000, default=True)],
+    ),
+    SidPlatformArgs(
         platform=SidSupportedPlatform.GENERIC,
         input_groups=[
             ACS_INPUT_GROUP_FORMAT,
@@ -1558,10 +1570,10 @@ def main() -> None:
         sub.set_defaults(group=input_group.name)
 
         arguments = (
-            input_group.arguments
-            + input_group.common_arguments
-            + platform_group.addtional_input_args
-            + platform_group.output_args
+                input_group.arguments
+                + input_group.common_arguments
+                + platform_group.addtional_input_args
+                + platform_group.output_args
         )
 
         for argument in arguments:
